@@ -579,3 +579,77 @@ $reader->open($file));
 
 $reader->close();
 ```
+
+## Protection
+
+There are a number of ways to protect the editing of a spreadsheet.
+
+> #### Note on security
+>
+> These protections are trivial to remove/bypass. They are only enforced if the application reading the spreadsheet
+> chooses to respect them. They should not be relied upon.
+
+### Workbook Protection
+
+> #### Note on LibreOffice support
+>
+> LibreOffice does not respect workbook protection.
+
+```php
+use OpenSpout\Writer\XLSX\Writer;
+use \OpenSpout\Writer\XLSX\Options
+use OpenSpout\Writer\XLSX\Options\WorkbookProtection;
+
+$protection = new WorkbookProtection(
+    password: 'password',
+    lockStructure: true, // Prevents adding, deleting, renaming, or rearranging worksheets
+    lockRevisions: true, // Restricts revision history
+    lockWindows: true, // Prevents resizing or moving the Excel window
+);
+
+$options = new Options()
+$options->setWorkbookProtection($protection);
+
+$writer = new Writer($options);
+```
+
+
+### Single Worksheet Protection
+
+> #### Note on LibreOffice support
+>
+> LibreOffice only respects the following protections, all others will be ignored:
+> - Select (un)protected cells
+> - Insert rows/columns
+> - Delete rows/columns
+
+```php
+use OpenSpout\Writer\XLSX\Writer;
+use OpenSpout\Writer\XLSX\Options\SheetProtection;
+
+$writer = new Writer();
+
+$protection = new SheetProtection(
+    password: 'password',
+    lockSheet: true,
+    lockColumnInsert: true,
+    lockColumnDelete: true,
+    lockColumnFormatting: true,
+    lockRowInsert: true,
+    lockRowDelete: true,
+    lockRowFormatting: true,
+    lockAutoFilter: true,
+    lockSort: true,
+    lockCellFormatting: true,
+    lockLockedCellSelection: true,
+    lockUnlockedCellsSelection: true,
+    lockObjects: true,
+    lockHyperlinkInsert: true,
+    lockPivotTables: true,
+    lockScenarios: true,
+);
+
+$writer
+    ->getCurrentSheet()
+    ->setSheetProtection($protection);
+```
