@@ -35,6 +35,11 @@ final class Writer extends AbstractWriterMultiSheets
         return $this->options;
     }
 
+    public function setCreator(string $creator): void
+    {
+        $this->options->getProperties()->creator = $creator;
+    }
+
     protected function createWorkbookManager(): WorkbookManager
     {
         $workbook = new Workbook();
