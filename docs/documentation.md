@@ -56,16 +56,47 @@ $options->SHOULD_CREATE_NEW_SHEETS_AUTOMATICALLY = false; // will stop writing n
 $writer = new Writer($options);
 ```
 
-### Setting custom document creator
+### Setting custom document creator (ODS writer)
 
 It is possible to change default document creator.
 The default creator is OpenSpout
 
 ```php
 use OpenSpout\Writer\ODS\Options;
+use OpenSpout\Writer\ODS\Writer;
 
 $writer = new Writer();
 $writer->setCreator('Custom creator');
+```
+
+### Setting custom document properties (XLSX writer)
+
+It is possible to change default document properties.
+The default values are as follows.
+
+```php
+use OpenSpout\Writer\XLSX\Options;
+use OpenSpout\Writer\XLSX\Properties;
+use OpenSpout\Writer\XLSX\Writer;
+
+$properties = new Properties(
+    title: 'Untitled Spreadsheet',
+    subject: null,
+    application: 'OpenSpout',
+    creator: 'OpenSpout',
+    lastModifiedBy: 'OpenSpout',
+    keywords: null,
+    description: null,
+    category: null,
+    language: null,
+    customProperties: [
+        'test' => 'Test'
+    ]
+);
+
+$options = new Options();
+$options->setProperties($properties);
+$writer = new Writer($options);
 ```
 
 ### Sheet view (XLSX writer)

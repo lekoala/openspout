@@ -29,6 +29,8 @@ final class Options extends AbstractOptions
 
     private ?WorkbookProtection $workbookProtection = null;
 
+    private Properties $properties;
+
     public function __construct()
     {
         parent::__construct();
@@ -38,6 +40,8 @@ final class Options extends AbstractOptions
         $defaultRowStyle->setFontName(self::DEFAULT_FONT_NAME);
 
         $this->DEFAULT_ROW_STYLE = $defaultRowStyle;
+
+        $this->properties = new Properties();
     }
 
     /**
@@ -114,5 +118,15 @@ final class Options extends AbstractOptions
     public function setWorkbookProtection(WorkbookProtection $workbookProtection): void
     {
         $this->workbookProtection = $workbookProtection;
+    }
+
+    public function getProperties(): Properties
+    {
+        return $this->properties;
+    }
+
+    public function setProperties(Properties $properties): void
+    {
+        $this->properties = $properties;
     }
 }

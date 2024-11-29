@@ -28,7 +28,6 @@ use OpenSpout\Writer\XLSX\Options\PageSetup;
 use OpenSpout\Writer\XLSX\Options\PaperSize;
 use OpenSpout\Writer\XLSX\Options\SheetProtection;
 use OpenSpout\Writer\XLSX\Options\WorkbookProtection;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionHelper;
 
@@ -126,36 +125,108 @@ final class WriterTest extends TestCase
         $this->expectNotToPerformAssertions();
     }
 
-    /**
-     * @return array{0: ?string, 1: string}[]
-     */
-    public static function provideSetCreatorCases(): iterable
+    public function testDefaultProperties(): void
     {
-        return [
-            ['Test creator', 'Test creator'],
-            [null, 'OpenSpout'],
-        ];
-    }
-
-    #[DataProvider('provideSetCreatorCases')]
-    public function testSetCreator(?string $expected, string $actual): void
-    {
-        $fileName = 'test_set_creator.xlsx';
+        $fileName = 'test_default_properties.xlsx';
         $resourcePath = (new TestUsingResource())->getGeneratedResourcePath($fileName);
 
         $options = new Options();
         $options->setTempFolder((new TestUsingResource())->getTempFolderPath());
         $writer = new Writer($options);
-        if (\is_string($expected)) {
-            $writer->setCreator($expected);
-        }
         $writer->openToFile($resourcePath);
         $writer->close();
 
-        $pathToWorkbookFile = $resourcePath.'#docProps/app.xml';
+        $appXmlContents = file_get_contents('zip://'.$resourcePath.'#docProps/app.xml');
+        self::assertNotFalse($appXmlContents);
+        self::assertStringContainsString('<Application>OpenSpout</Application>', $appXmlContents);
+
+        $coreXmlContents = file_get_contents('zip://'.$resourcePath.'#docProps/core.xml');
+        self::assertNotFalse($coreXmlContents);
+        self::assertStringContainsString('<dc:title>Untitled Spreadsheet</dc:title>', $coreXmlContents);
+        self::assertStringContainsString('<dc:creator>OpenSpout</dc:creator>', $coreXmlContents);
+        self::assertStringContainsString('<cp:lastModifiedBy>OpenSpout</cp:lastModifiedBy>', $coreXmlContents);
+
+        self::assertFileDoesNotExist($resourcePath.'#docProps/custom.xml');
+
+        $contentTypesXmlContents = file_get_contents('zip://'.$resourcePath.'#[Content_Types].xml');
+        self::assertNotFalse($contentTypesXmlContents);
+        self::assertStringNotContainsString('<Override ContentType="application/vnd.openxmlformats-officedocument.custom-properties+xml" PartName="/docProps/custom.xml" />', $contentTypesXmlContents);
+
+        $relsXmlContents = file_get_contents('zip://'.$resourcePath.'#_rels/.rels');
+        self::assertNotFalse($relsXmlContents);
+        self::assertStringNotContainsString('<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties" Target="docProps/custom.xml"/>', $relsXmlContents);
+    }
+
+    public function testSetProperties(): void
+    {
+        $fileName = 'test_set_properties.xlsx';
+        $resourcePath = (new TestUsingResource())->getGeneratedResourcePath($fileName);
+
+        $properties = new Properties(
+            'Title',
+            'Subject',
+            'Application',
+            'Creator',
+            'Last Modified By',
+            'key,words',
+            'Description',
+            'Category',
+            'English',
+        );
+
+        $options = new Options();
+        $options->setTempFolder((new TestUsingResource())->getTempFolderPath());
+        $options->setProperties($properties);
+        $writer = new Writer($options);
+        $writer->openToFile($resourcePath);
+        $writer->close();
+
+        $appXmlContents = file_get_contents('zip://'.$resourcePath.'#docProps/app.xml');
+        self::assertNotFalse($appXmlContents);
+        self::assertStringContainsString('<Application>Application</Application>', $appXmlContents);
+
+        $coreXmlContents = file_get_contents('zip://'.$resourcePath.'#docProps/core.xml');
+        self::assertNotFalse($coreXmlContents);
+        self::assertStringContainsString('<dc:title>Title</dc:title>', $coreXmlContents);
+        self::assertStringContainsString('<dc:subject>Subject</dc:subject>', $coreXmlContents);
+        self::assertStringContainsString('<dc:creator>Creator</dc:creator>', $coreXmlContents);
+        self::assertStringContainsString('<cp:lastModifiedBy>Last Modified By</cp:lastModifiedBy>', $coreXmlContents);
+        self::assertStringContainsString('<cp:keywords>key,words</cp:keywords>', $coreXmlContents);
+        self::assertStringContainsString('<dc:description>Description</dc:description>', $coreXmlContents);
+        self::assertStringContainsString('<cp:category>Category</cp:category>', $coreXmlContents);
+        self::assertStringContainsString('<dc:language>English</dc:language>', $coreXmlContents);
+    }
+
+    public function testSetCustomProperties(): void
+    {
+        $fileName = 'test_set_custom_properties.xlsx';
+        $resourcePath = (new TestUsingResource())->getGeneratedResourcePath($fileName);
+
+        $properties = new Properties(
+            customProperties: [
+                'test' => 'Test',
+            ]
+        );
+
+        $options = new Options();
+        $options->setTempFolder((new TestUsingResource())->getTempFolderPath());
+        $options->setProperties($properties);
+        $writer = new Writer($options);
+        $writer->openToFile($resourcePath);
+        $writer->close();
+
+        $pathToWorkbookFile = $resourcePath.'#docProps/custom.xml';
         $xmlContents = file_get_contents('zip://'.$pathToWorkbookFile);
         self::assertNotFalse($xmlContents);
-        self::assertStringContainsString("<Application>{$actual}</Application>", $xmlContents);
+        self::assertStringContainsString('<property fmtid="{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" pid="2" name="test"><vt:lpwstr>Test</vt:lpwstr></property>', $xmlContents);
+
+        $contentTypesXmlContents = file_get_contents('zip://'.$resourcePath.'#[Content_Types].xml');
+        self::assertNotFalse($contentTypesXmlContents);
+        self::assertStringContainsString('<Override ContentType="application/vnd.openxmlformats-officedocument.custom-properties+xml" PartName="/docProps/custom.xml" />', $contentTypesXmlContents);
+
+        $relsXmlContents = file_get_contents('zip://'.$resourcePath.'#_rels/.rels');
+        self::assertNotFalse($relsXmlContents);
+        self::assertStringContainsString('<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties" Target="docProps/custom.xml"/>', $relsXmlContents);
     }
 
     public function testAddRowShouldWriteGivenDataToSheetUsingInlineStrings(): void
