@@ -28,6 +28,11 @@ final class Writer extends AbstractWriter
     {
         return $this->options;
     }
+    
+    public function setCreator(string $creator): void
+    {
+        // noop
+    }
 
     /**
      * Opens the CSV streamer and makes it ready to accept data.
