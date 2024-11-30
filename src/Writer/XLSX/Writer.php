@@ -37,7 +37,19 @@ final class Writer extends AbstractWriterMultiSheets
 
     public function setCreator(string $creator): void
     {
-        $this->options->getProperties()->creator = $creator;
+        $props = $this->options->getProperties();
+        $this->options->setProperties(new Properties(
+            $props->title,
+            $props->subject,
+            $props->application,
+            $creator,
+            $props->lastModifiedBy,
+            $props->keywords,
+            $props->description,
+            $props->category,
+            $props->language,
+            $props->customProperties
+        ));
     }
 
     protected function createWorkbookManager(): WorkbookManager
