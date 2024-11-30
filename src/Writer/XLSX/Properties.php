@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenSpout\Writer\XLSX;
 
-final class Properties
+final readonly class Properties
 {
     public function __construct(
         public ?string $title = 'Untitled Spreadsheet',
