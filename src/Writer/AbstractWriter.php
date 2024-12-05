@@ -137,8 +137,6 @@ abstract class AbstractWriter implements WriterInterface
         $this->isWriterOpened = false;
     }
 
-    abstract public function setCreator(string $creator): void;
-
     /**
      * Opens the streamer and makes it ready to accept data.
      *
