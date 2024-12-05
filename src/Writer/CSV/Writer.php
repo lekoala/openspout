@@ -31,7 +31,7 @@ final class Writer extends AbstractWriter
     
     public function setCreator(string $creator): void
     {
-        // noop
+        throw new \Exception('Method unsopported for CSV documents');
     }
 
     /**
